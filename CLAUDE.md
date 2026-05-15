@@ -84,8 +84,21 @@ int regex_match(const char* regex,
 
 ## Coding Standards
 See [EZ.md § Code Style](EZ.md#code-style--orthodox-c). Domain-specific addition:
-internal capture state is bounded by `EZREGEX_MAX_CAPTURES` (default 16, overridable
+internal capture state is bounded by `EZ_REGEX_MAX_CAPTURES` (default 16, overridable
 before `#include`).
+
+## Naming Conventions
+See [EZ.md § Naming Conventions](EZ.md#naming-conventions) for the full table and
+rationale. ezregex-specific instantiation:
+
+| Element | Name |
+|---------|------|
+| Namespace | `ez` |
+| Public function | `ez::regex_match` |
+| Return-code macros | `EZ_REGEX_MATCH`, `EZ_REGEX_NO_MATCH`, `EZ_REGEX_ERR_*` |
+| Compile-time limit | `EZ_REGEX_MAX_CAPTURES` |
+| White-box testing flag | `EZ_REGEX_TESTING` |
+| CMake options | `EZREGEX_BUILD_TESTS`, `EZREGEX_BUILD_BENCHMARKS`, `EZREGEX_SANITIZE`, `EZREGEX_BUILD_FUZZ` |
 
 ## Architecture
 - **No separate compilation step.** The engine is a recursive-descent matcher that
