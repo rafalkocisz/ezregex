@@ -31,7 +31,7 @@ additional validation or complexity limits at the call site.
 ## Quick start
 
 ```cpp
-#include "ezregex.h"
+#include "ez_regex.h"
 #include <vector>
 #include <string_view>
 #include <cstdio>
@@ -97,7 +97,7 @@ The default capture limit is 16. Override it before including the header:
 
 ```cpp
 #define EZ_REGEX_MAX_CAPTURES 32
-#include "ezregex.h"
+#include "ez_regex.h"
 ```
 
 ## Supported syntax
@@ -180,13 +180,13 @@ produces the most actionable ASan stack traces.
 
 ```sh
 # Linux / macOS
-./build-san/tests/test_ezregex
+./build-san/tests/test_ez_regex
 
 # Windows — the ASan runtime DLL must be on PATH before running.
 # Adjust the MSVC version number to match your installation.
 $asanDir = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\<version>\bin\Hostx64\x64"
 $env:PATH = "$asanDir;$env:PATH"
-.\build-san\tests\RelWithDebInfo\test_ezregex.exe
+.\build-san\tests\RelWithDebInfo\test_ez_regex.exe
 ```
 
 > **MSVC notes:**
@@ -203,7 +203,7 @@ The easiest option is WSL2 with GCC or Clang:
 # Inside WSL2 (Ubuntu)
 cmake -B build-san -DEZREGEX_SANITIZE=ON -DCMAKE_CXX_COMPILER=clang++
 cmake --build build-san
-./build-san/tests/test_ezregex
+./build-san/tests/test_ez_regex
 ```
 
 ### What the sanitizers check
@@ -236,11 +236,11 @@ cmake --build build-fuzz
 ### Run
 
 ```sh
-# Run for 5 minutes using the provided seed corpus.
-./build-fuzz/fuzz/fuzz_ezregex fuzz/corpus/ -max_total_time=300
+# Run for 500 000 iterations using the provided seed corpus.
+./build-fuzz/fuzz/fuzz_ez_regex fuzz/corpus/ -runs=500000
 
 # Run indefinitely, saving new interesting inputs to fuzz/corpus/.
-./build-fuzz/fuzz/fuzz_ezregex fuzz/corpus/
+./build-fuzz/fuzz/fuzz_ez_regex fuzz/corpus/
 ```
 
 libFuzzer prints a summary line for each new coverage-increasing input it finds and
@@ -251,7 +251,7 @@ The offending input is saved to `crash-<hash>` in the current directory.
 
 ```sh
 # Feed a saved crash input directly to the fuzzer binary.
-./build-fuzz/fuzz/fuzz_ezregex crash-<hash>
+./build-fuzz/fuzz/fuzz_ez_regex crash-<hash>
 ```
 
 ### Input format
@@ -315,10 +315,10 @@ For verbose output showing each test case:
 
 ```sh
 # Linux / macOS
-./build/tests/test_ezregex
+./build/tests/test_ez_regex
 
 # Windows
-.\build\tests\Debug\test_ezregex.exe
+.\build\tests\Debug\test_ez_regex.exe
 ```
 
 ## Benchmarks
@@ -347,10 +347,10 @@ cmake --build build --config Release
 
 ```sh
 # Linux / macOS
-./build/benchmarks/bench_ezregex
+./build/benchmarks/bench_ez_regex
 
 # Windows
-.\build\benchmarks\Release\bench_ezregex.exe
+.\build\benchmarks\Release\bench_ez_regex.exe
 ```
 
 ### Benchmark scenarios
@@ -397,17 +397,17 @@ cmake --build build --config Release
 ```
 ezregex/
   CMakeLists.txt
-  ezregex.h              public API + error codes
-  ezregex.cpp            implementation
+  ez_regex.h              public API + error codes
+  ez_regex.cpp            implementation
   tests/
     CMakeLists.txt
     doctest.h             vendored single-header test framework
-    test_ezregex.cpp      unit + integration tests
+    test_ez_regex.cpp      unit + integration tests
   benchmarks/
     CMakeLists.txt
-    bench_ezregex.cpp     ezregex vs std::regex benchmark suite
+    bench_ez_regex.cpp     ezregex vs std::regex benchmark suite
   fuzz/
     CMakeLists.txt
-    fuzz_ezregex.cpp      libFuzzer target (Clang + WSL2/Linux only)
+    fuzz_ez_regex.cpp      libFuzzer target (Clang + WSL2/Linux only)
     corpus/               seed inputs derived from the test suite
 ```

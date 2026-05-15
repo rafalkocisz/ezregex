@@ -113,10 +113,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(EZ<NAME>_BUILD_TESTS      "Build unit tests"                      ON)
-option(EZ<NAME>_BUILD_BENCHMARKS "Build benchmarks"                      OFF)
-option(EZ<NAME>_SANITIZE         "Build with ASan (+ UBSan on GCC/Clang)" OFF)
-option(EZ<NAME>_BUILD_FUZZ       "Build libFuzzer target (Clang only)"   OFF)
+option(ez_<name>_BUILD_TESTS      "Build unit tests"                      ON)
+option(ez_<name>_BUILD_BENCHMARKS "Build benchmarks"                      OFF)
+option(ez_<name>_SANITIZE         "Build with ASan (+ UBSan on GCC/Clang)" OFF)
+option(ez_<name>_BUILD_FUZZ       "Build libFuzzer target (Clang only)"   OFF)
 ```
 
 - Tests are **on by default**; benchmarks, sanitizers, and fuzzing are opt-in.
@@ -219,23 +219,23 @@ Sections in order:
 ## Repository Layout
 
 ```
-ez<name>/
+ez_<name>/
   CMakeLists.txt
   .clang-format          code-formatting rules (clang-format)
   EZ.md                  ← this file (or a reference to a shared copy)
-  ez<name>.h             public API + error codes
-  ez<name>.cpp           implementation
+  ez_<name>.h             public API + error codes
+  ez_<name>.cpp           implementation
   CLAUDE.md              AI assistant project constitution
   tests/
     CMakeLists.txt
     doctest.h            vendored single-header test framework
-    test_ez<name>.cpp    unit + integration tests
+    test_ez_<name>.cpp    unit + integration tests
   benchmarks/
     CMakeLists.txt
-    bench_ez<name>.cpp   library vs std equivalent
+    bench_ez_<name>.cpp   library vs std equivalent
   fuzz/
     CMakeLists.txt
-    fuzz_ez<name>.cpp    libFuzzer target
+    fuzz_ez_<name>.cpp    libFuzzer target
     corpus/              seed inputs (one file per feature area)
 ```
 

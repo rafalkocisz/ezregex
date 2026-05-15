@@ -1,4 +1,4 @@
-#include "ezregex.h"
+#include "ez_regex.h"
 #include <climits>
 
 // ── Character predicates ──────────────────────────────────────────────────────

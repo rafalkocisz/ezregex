@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
-#include "ezregex.h"
+#include "ez_regex.h"
 
 // ── White-box access to internal primitives ───────────────────────────────────
 bool _test_is_digit(char c);

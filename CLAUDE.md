@@ -104,8 +104,8 @@ rationale. ezregex-specific instantiation:
 - **No separate compilation step.** The engine is a recursive-descent matcher that
   parses and matches the regex in a single pass. Quantifiers are handled by bounded
   recursion, not by building an NFA/DFA graph.
-- Source files: `ezregex.h`, `ezregex.cpp`.
-- Unit tests: `tests/test_ezregex.cpp` using the **doctest** framework.
+- Source files: `ez_regex.h`, `ez_regex.cpp`.
+- Unit tests: `tests/test_ez_regex.cpp` using the **doctest** framework.
 - Build system: CMake ≥ 3.20.
 
 ## Repository Layout
@@ -123,12 +123,12 @@ ctest --test-dir build
 
 # Sanitizer build (Clang, WSL2/Linux)
 cmake -B build-san -DEZREGEX_SANITIZE=ON -DCMAKE_CXX_COMPILER=clang++
-cmake --build build-san && ./build-san/tests/test_ezregex
+cmake --build build-san && ./build-san/tests/test_ez_regex
 
 # Fuzz build (Clang, WSL2/Linux)
 cmake -B build-fuzz -DEZREGEX_BUILD_FUZZ=ON -DCMAKE_CXX_COMPILER=clang++
 cmake --build build-fuzz
-./build-fuzz/fuzz/fuzz_ezregex fuzz/corpus/ -runs=500000
+./build-fuzz/fuzz/fuzz_ez_regex fuzz/corpus/ -runs=500000
 ```
 
 ## Out of Scope

@@ -40,7 +40,7 @@ elseif(EZREGEX_BUILD_FUZZ)
     add_link_options(-fsanitize=address,undefined)
 endif()
 
-add_library(ezregex ezregex.cpp)
+add_library(ezregex ez_regex.cpp)
 target_include_directories(ezregex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(EZREGEX_BUILD_TESTS)

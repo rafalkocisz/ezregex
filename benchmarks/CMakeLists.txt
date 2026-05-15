@@ -9,5 +9,5 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nanobench)
 
-add_executable(bench_ezregex bench_ezregex.cpp)
-target_link_libraries(bench_ezregex PRIVATE ezregex nanobench)
+add_executable(bench_ez_regex bench_ez_regex.cpp)
+target_link_libraries(bench_ez_regex PRIVATE ezregex nanobench)

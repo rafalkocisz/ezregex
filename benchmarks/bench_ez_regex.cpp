@@ -1,7 +1,7 @@
 #define ANKERL_NANOBENCH_IMPLEMENT
 #include <nanobench.h>
 
-#include "ezregex.h"
+#include "ez_regex.h"
 
 #include <regex>
 #include <string>

@@ -1,4 +1,4 @@
-#include "ezregex.h"
+#include "ez_regex.h"
 #include <cassert>
 #include <cstring>
 #include <string>
