@@ -1,8 +1,8 @@
 # ezregex — Project Constitution
 
-> Non-domain-specific style rules (Orthodox C++, testing, build options, benchmarking,
-> sanitizers, fuzzing, naming, repository layout) live in **[EZ.md](EZ.md)** and apply
-> to this project in full. This file contains only ezregex-specific decisions.
+> Non-domain-specific style rules (Orthodox C++, code formatting, testing, build options,
+> benchmarking, sanitizers, fuzzing, naming, repository layout) live in **[EZ.md](EZ.md)**
+> and apply to this project in full. This file contains only ezregex-specific decisions.
 
 ## Purpose
 A minimal, dependency-free C++ regex matching library focused on simplicity and correctness.
@@ -128,7 +128,7 @@ cmake --build build-san && ./build-san/tests/test_ezregex
 # Fuzz build (Clang, WSL2/Linux)
 cmake -B build-fuzz -DEZREGEX_BUILD_FUZZ=ON -DCMAKE_CXX_COMPILER=clang++
 cmake --build build-fuzz
-./build-fuzz/fuzz/fuzz_ezregex fuzz/corpus/ -max_total_time=300
+./build-fuzz/fuzz/fuzz_ezregex fuzz/corpus/ -runs=500000
 ```
 
 ## Out of Scope
