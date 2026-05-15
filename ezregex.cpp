@@ -194,7 +194,7 @@ struct CaptureGroup {
 };
 
 struct CaptureState {
-    CaptureGroup groups[EZREGEX_MAX_CAPTURES];
+    CaptureGroup groups[EZ_REGEX_MAX_CAPTURES];
     int          count;
 };
 
@@ -261,7 +261,7 @@ static bool match_here(const char* pat, const char* str,
 
     // Group markers — do not consume a character from str.
     if (pat[0] == '(') {
-        if (state.count >= EZREGEX_MAX_CAPTURES)
+        if (state.count >= EZ_REGEX_MAX_CAPTURES)
             return false;
         int idx = state.count++;
         state.groups[idx].start = str;
@@ -307,7 +307,7 @@ static bool match_here(const char* pat, const char* str,
 }
 
 // ── Test-accessible wrappers (compiled only with EZREGEX_TESTING) ─────────────
-#ifdef EZREGEX_TESTING
+#ifdef EZ_REGEX_TESTING
 bool _test_is_digit(char c)                               { return is_digit(c); }
 bool _test_is_alpha(char c)                               { return is_alpha(c); }
 bool _test_is_word(char c)                                { return is_word(c); }
@@ -320,12 +320,12 @@ bool _test_parse_braces(const char* pat, int& lo, int& hi, int& qadv)
                                                           { return parse_braces(pat, lo, hi, qadv); }
 #endif
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// ── Public API (namespace ez) ─────────────────────────────────────────────────
 
 // ── Pattern validator ─────────────────────────────────────────────────────────
 
 // Walk the pattern once, checking structural validity.
-// Returns EZREGEX_MATCH (0) if valid, or a negative error code.
+// Returns EZ_REGEX_MATCH (0) if valid, or a negative error code.
 static int validate_pattern(const char* pat)
 {
     int depth = 0;   // 0 = outside a group, 1 = inside; >1 is an error (no nesting)
@@ -333,7 +333,7 @@ static int validate_pattern(const char* pat)
 
     for (const char* p = pat; *p != '\0'; ) {
         if (*p == '\\') {
-            if (*(p + 1) == '\0') return EZREGEX_ERR_ESCAPE;   // trailing backslash
+            if (*(p + 1) == '\0') return EZ_REGEX_ERR_ESCAPE;   // trailing backslash
             switch (*(p + 1)) {
                 case 'd': case 'D':
                 case 'w': case 'W':
@@ -345,7 +345,7 @@ static int validate_pattern(const char* pat)
                 case '\\':
                     break;
                 default:
-                    return EZREGEX_ERR_ESCAPE;                  // unknown escape sequence
+                    return EZ_REGEX_ERR_ESCAPE;                  // unknown escape sequence
             }
             p += 2;
             continue;
@@ -359,29 +359,29 @@ static int validate_pattern(const char* pat)
             while (*q != '\0') {
                 if (*q == ']' && !first) { break; }
                 if (*q == '\\') {
-                    if (*(q + 1) == '\0') return EZREGEX_ERR_BRACKET;  // \ at end of content
+                    if (*(q + 1) == '\0') return EZ_REGEX_ERR_BRACKET;  // \ at end of content
                     q += 2;
                 } else {
                     ++q;
                 }
                 first = false;
             }
-            if (*q != ']') return EZREGEX_ERR_BRACKET;         // unclosed '['
+            if (*q != ']') return EZ_REGEX_ERR_BRACKET;         // unclosed '['
             p = q + 1;
             continue;
         }
 
         if (*p == '(') {
-            if (depth > 0) return EZREGEX_ERR_NESTING;         // nested groups not supported
+            if (depth > 0) return EZ_REGEX_ERR_NESTING;         // nested groups not supported
             ++depth;
             ++groups;
-            if (groups > EZREGEX_MAX_CAPTURES) return EZREGEX_ERR_DEPTH;
+            if (groups > EZ_REGEX_MAX_CAPTURES) return EZ_REGEX_ERR_DEPTH;
             ++p;
             continue;
         }
 
         if (*p == ')') {
-            if (depth == 0) return EZREGEX_ERR_PAREN;          // unmatched ')'
+            if (depth == 0) return EZ_REGEX_ERR_PAREN;          // unmatched ')'
             --depth;
             ++p;
             continue;
@@ -390,17 +390,19 @@ static int validate_pattern(const char* pat)
         ++p;
     }
 
-    if (depth != 0) return EZREGEX_ERR_PAREN;                  // unclosed '('
-    return EZREGEX_MATCH;
+    if (depth != 0) return EZ_REGEX_ERR_PAREN;                  // unclosed '('
+    return EZ_REGEX_MATCH;
 }
 
-#ifdef EZREGEX_TESTING
+#ifdef EZ_REGEX_TESTING
 int  _test_validate_pattern(const char* pat)              { return validate_pattern(pat); }
 #endif
 
-int ezregex_match(const char* regex,
-                  const char* str,
-                  std::vector<std::string_view>* captures)
+namespace ez {
+
+int regex_match(const char* regex,
+                const char* str,
+                std::vector<std::string_view>* captures)
 {
     if (captures) captures->clear();
 
@@ -418,11 +420,13 @@ int ezregex_match(const char* regex,
                             (size_t)(state.groups[i].end - state.groups[i].start));
                 }
             }
-            return EZREGEX_MATCH;
+            return EZ_REGEX_MATCH;
         }
         // For anchored patterns only position 0 can succeed.
         if (*p == '\0' || regex[0] == '^') break;
         ++p;
     }
-    return EZREGEX_NO_MATCH;
+    return EZ_REGEX_NO_MATCH;
 }
+
+} // namespace ez

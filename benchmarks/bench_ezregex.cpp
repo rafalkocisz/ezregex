@@ -44,7 +44,7 @@ static void bench_group(const char*        title,
         .warmup(200)
         .minEpochIterations(min_iters)
         .run("ezregex   one-shot", [&] {
-            nb::doNotOptimizeAway(ezregex_match(pat, input.c_str(), &caps));
+            nb::doNotOptimizeAway(ez::regex_match(pat, input.c_str(), &caps));
         })
         .run("std::regex hot    ", [&] {
             nb::doNotOptimizeAway(std_match(re_hot, m, input));

@@ -11,6 +11,8 @@ Single header+source pair, Orthodox C++ style, ASCII-only, no Unicode.
 ## Public API
 
 ```cpp
+namespace ez {
+
 // regex    — null-terminated regex pattern
 // str      — null-terminated string to match
 // captures — if non-null: filled with string_views into str for each capture
@@ -18,11 +20,13 @@ Single header+source pair, Orthodox C++ style, ASCII-only, no Unicode.
 //            if nullptr (default): match proceeds normally, captures discarded
 //
 // Returns:  0  — successful match
-//          >0  — no match (use EZREGEX_NO_MATCH)
-//          <0  — invalid regex (use EZREGEX_ERR_* codes)
-int ezregex_match(const char* regex,
-                  const char* str,
-                  std::vector<std::string_view>* captures = nullptr);
+//          >0  — no match (use EZ_REGEX_NO_MATCH)
+//          <0  — invalid regex (use EZ_REGEX_ERR_* codes)
+int regex_match(const char* regex,
+                const char* str,
+                std::vector<std::string_view>* captures = nullptr);
+
+} // namespace ez
 ```
 
 ## Supported Regex Syntax
@@ -64,16 +68,16 @@ int ezregex_match(const char* regex,
 ## Return / Error codes
 
 ```cpp
-#define EZREGEX_MAX_CAPTURES  16   // max number of capture groups; override before including
+#define EZ_REGEX_MAX_CAPTURES  16   // max number of capture groups; override before including
 
-#define EZREGEX_MATCH         0    // successful match
-#define EZREGEX_NO_MATCH      1    // pattern did not match
-#define EZREGEX_ERR_SYNTAX   -1    // generic catch-all (not returned by current code)
-#define EZREGEX_ERR_DEPTH    -2    // too many capture groups (> EZREGEX_MAX_CAPTURES)
-#define EZREGEX_ERR_ESCAPE   -3    // trailing backslash, or unknown \x escape sequence
-#define EZREGEX_ERR_BRACKET  -4    // unclosed '[', or backslash at end of bracket content
-#define EZREGEX_ERR_PAREN    -5    // unmatched '(' or ')'
-#define EZREGEX_ERR_NESTING  -6    // nested capture groups (not supported)
+#define EZ_REGEX_MATCH         0    // successful match
+#define EZ_REGEX_NO_MATCH      1    // pattern did not match
+#define EZ_REGEX_ERR_SYNTAX   -1    // generic catch-all (not returned by current code)
+#define EZ_REGEX_ERR_DEPTH    -2    // too many capture groups (> EZ_REGEX_MAX_CAPTURES)
+#define EZ_REGEX_ERR_ESCAPE   -3    // trailing backslash, or unknown \x escape sequence
+#define EZ_REGEX_ERR_BRACKET  -4    // unclosed '[', or backslash at end of bracket content
+#define EZ_REGEX_ERR_PAREN    -5    // unmatched '(' or ')'
+#define EZ_REGEX_ERR_NESTING  -6    // nested capture groups (not supported)
 ```
 
 `captures` is **always cleared** on entry regardless of outcome. Views into `str` are only valid while `str` is alive.

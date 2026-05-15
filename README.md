@@ -39,22 +39,22 @@ additional validation or complexity limits at the call site.
 int main()
 {
     // Simple match — no captures needed, omit the vector entirely
-    if (ezregex_match("\\d+", "price: 42 USD") == EZREGEX_MATCH)
+    if (ez::regex_match("\\d+", "price: 42 USD") == EZ_REGEX_MATCH)
         printf("found a number\n");
 
     // Full-string match with anchors
-    if (ezregex_match("^\\d{4}-\\d{2}-\\d{2}$", "2024-01-15") == EZREGEX_MATCH)
+    if (ez::regex_match("^\\d{4}-\\d{2}-\\d{2}$", "2024-01-15") == EZ_REGEX_MATCH)
         printf("valid ISO date\n");
 
     // Capturing groups — pass a vector to receive the captures
     std::vector<std::string_view> caps;
-    if (ezregex_match("^(\\w+)=(\\w+)$", "timeout=30", &caps) == EZREGEX_MATCH) {
+    if (ez::regex_match("^(\\w+)=(\\w+)$", "timeout=30", &caps) == EZ_REGEX_MATCH) {
         printf("key:   %.*s\n", (int)caps[0].size(), caps[0].data());
         printf("value: %.*s\n", (int)caps[1].size(), caps[1].data());
     }
 
     // Error handling
-    int r = ezregex_match("(bad[pattern", "test");
+    int r = ez::regex_match("(bad[pattern", "test");
     if (r < 0)
         printf("invalid pattern: error code %d\n", r);
 }
@@ -63,9 +63,13 @@ int main()
 ## API
 
 ```cpp
-int ezregex_match(const char* regex,
-                  const char* str,
-                  std::vector<std::string_view>* captures = nullptr);
+namespace ez {
+
+int regex_match(const char* regex,
+                const char* str,
+                std::vector<std::string_view>* captures = nullptr);
+
+} // namespace ez
 ```
 
 | Parameter  | Description |
@@ -76,23 +80,23 @@ int ezregex_match(const char* regex,
 
 ### Return values
 
-| Code                  | Value | Meaning |
-|-----------------------|------:|---------|
-| `EZREGEX_MATCH`       |  `0`  | Pattern matched |
-| `EZREGEX_NO_MATCH`    |  `1`  | Pattern did not match |
-| `EZREGEX_ERR_SYNTAX`  | `-1`  | Generic syntax error (reserved catch-all) |
-| `EZREGEX_ERR_DEPTH`   | `-2`  | Too many capture groups (> `EZREGEX_MAX_CAPTURES`) |
-| `EZREGEX_ERR_ESCAPE`  | `-3`  | Trailing `\`, or unknown escape sequence |
-| `EZREGEX_ERR_BRACKET` | `-4`  | Unclosed `[`, or `\` at end of bracket content |
-| `EZREGEX_ERR_PAREN`   | `-5`  | Unmatched `(` or `)` |
-| `EZREGEX_ERR_NESTING` | `-6`  | Nested capture groups (not supported) |
+| Code                     | Value | Meaning |
+|--------------------------|------:|---------|
+| `EZ_REGEX_MATCH`         |  `0`  | Pattern matched |
+| `EZ_REGEX_NO_MATCH`      |  `1`  | Pattern did not match |
+| `EZ_REGEX_ERR_SYNTAX`    | `-1`  | Generic syntax error (reserved catch-all) |
+| `EZ_REGEX_ERR_DEPTH`     | `-2`  | Too many capture groups (> `EZ_REGEX_MAX_CAPTURES`) |
+| `EZ_REGEX_ERR_ESCAPE`    | `-3`  | Trailing `\`, or unknown escape sequence |
+| `EZ_REGEX_ERR_BRACKET`   | `-4`  | Unclosed `[`, or `\` at end of bracket content |
+| `EZ_REGEX_ERR_PAREN`     | `-5`  | Unmatched `(` or `)` |
+| `EZ_REGEX_ERR_NESTING`   | `-6`  | Nested capture groups (not supported) |
 
 Any negative return value means an invalid pattern; test with `result < 0` to catch all errors.
 
 The default capture limit is 16. Override it before including the header:
 
 ```cpp
-#define EZREGEX_MAX_CAPTURES 32
+#define EZ_REGEX_MAX_CAPTURES 32
 #include "ezregex.h"
 ```
 

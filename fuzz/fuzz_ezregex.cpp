@@ -22,10 +22,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     std::vector<std::string_view> caps;
-    int r = ezregex_match(pattern.c_str(), subject.c_str(), &caps);
+    int r = ez::regex_match(pattern.c_str(), subject.c_str(), &caps);
 
     // Every returned capture must point inside the subject buffer.
-    if (r == EZREGEX_MATCH) {
+    if (r == EZ_REGEX_MATCH) {
         const char* s = subject.c_str();
         const char* e = s + subject.size();
         for (const auto& sv : caps) {

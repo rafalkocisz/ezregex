@@ -44,7 +44,7 @@ add_library(ezregex ezregex.cpp)
 target_include_directories(ezregex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(EZREGEX_BUILD_TESTS)
-    target_compile_definitions(ezregex PRIVATE EZREGEX_TESTING)
+    target_compile_definitions(ezregex PRIVATE EZ_REGEX_TESTING)
     enable_testing()
     add_subdirectory(tests)
 endif()
