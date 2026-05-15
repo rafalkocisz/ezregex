@@ -358,8 +358,6 @@ bool _test_parse_braces(const char* pat, int& lo, int& hi, int& qadv)
 }
 #endif
 
-// ── Public API (namespace ez) ─────────────────────────────────────────────────
-
 // ── Pattern validator ─────────────────────────────────────────────────────────
 
 // Walk the pattern once, checking structural validity.
@@ -460,6 +458,8 @@ int _test_validate_pattern(const char* pat)
     return validate_pattern(pat);
 }
 #endif
+
+// ── Public API (namespace ez) ─────────────────────────────────────────────────
 
 namespace ez
 {
