@@ -19,6 +19,18 @@ Each member follows these rules unless the domain gives a specific reason not to
 
 ---
 
+## Code Formatting
+
+- **Tool:** clang-format — a `.clang-format` file is required in every ez library root.
+- **Style:** 4-space indent, 100-column limit, Linux brace style (Allman for functions,
+  K&R for control flow), pointer/reference left-aligned (`int* p`, `int& r`), short case
+  labels on one line, includes unsorted.
+- **Enforcement:** CI runs `clang-format --dry-run --Werror` on all `.cpp` / `.h` sources
+  (excluding vendored headers such as `doctest.h`) on every push and pull request.
+- Apply locally before committing: `clang-format -i --style=file <file>`.
+
+---
+
 ## Code Style — Orthodox C++
 
 | Rule | Detail |
@@ -28,7 +40,7 @@ Each member follows these rules unless the domain gives a specific reason not to
 | RTTI | Disabled — no `dynamic_cast`, no `typeid` |
 | Heap | No `new`/`delete`, no `malloc`/`free` inside the library core |
 | STL containers | Not used inside the implementation; `std::string_view` as a thin view type is acceptable |
-| Internal state | Fixed-size stack arrays bounded by a compile-time constant (e.g. `EZ<NAME>_MAX_ITEMS`) |
+| Internal state | Fixed-size stack arrays bounded by a compile-time constant (e.g. `EZ_<NAME>_MAX_ITEMS`) |
 | Inheritance | No multiple inheritance; no virtual functions in hot paths |
 | Functions | Short, flat, named after what they do; no multi-level nesting |
 | Comments | Only where the *why* is non-obvious — hidden constraint, workaround, subtle invariant |
@@ -196,10 +208,11 @@ Sections in order:
 4. Matching / processing semantics
 5. Return / error codes
 6. Coding Standards (pointer to EZ.md + domain-specific additions)
-7. Architecture (key design decisions)
-8. Repository layout
-9. **Commands** (configure, build, test, sanitize, fuzz — exact shell commands)
-10. Out of Scope (explicit list)
+7. Naming Conventions (pointer to EZ.md + library-specific instantiation table)
+8. Architecture (key design decisions)
+9. Repository layout
+10. **Commands** (configure, build, test, sanitize, fuzz — exact shell commands)
+11. Out of Scope (explicit list)
 
 ---
 
@@ -208,6 +221,7 @@ Sections in order:
 ```
 ez<name>/
   CMakeLists.txt
+  .clang-format          code-formatting rules (clang-format)
   EZ.md                  ← this file (or a reference to a shared copy)
   ez<name>.h             public API + error codes
   ez<name>.cpp           implementation
