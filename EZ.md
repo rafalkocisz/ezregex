@@ -38,7 +38,9 @@ Each member follows these rules unless the domain gives a specific reason not to
 ## API Conventions
 
 ### Shape
-- **Single public function** (or a small, cohesive set) prefixed `ez<name>_`.
+- **Single public function** (or a small, cohesive set) in the `ez` namespace.
+- Function names include their domain to avoid ambiguity when multiple ez libraries
+  are used together: `ez::regex_match`, `ez::json_parse`.
 - Input strings are null-terminated `const char*` for C compatibility.
 - Output is returned via an **optional nullable pointer** with a default of `nullptr`:
   the caller passes a pointer when they need the result, or omits it for a simple
@@ -49,7 +51,7 @@ Each member follows these rules unless the domain gives a specific reason not to
 ```
  0   — success / match
  1   — defined negative result (no match, not found, …)
-<0   — invalid input / error (use EZ<NAME>_ERR_* codes)
+<0   — invalid input / error (use EZ_<NAME>_ERR_* codes)
 ```
 Always test `result < 0` to catch all error variants at once.
 
@@ -57,9 +59,9 @@ Always test `result < 0` to catch all error variants at once.
 Define as macros in the public header:
 
 ```cpp
-#define EZ<NAME>_MATCH       0
-#define EZ<NAME>_NO_MATCH    1
-#define EZ<NAME>_ERR_SYNTAX -1   // generic catch-all (reserved; not returned by current code)
+#define EZ_<NAME>_MATCH       0
+#define EZ_<NAME>_NO_MATCH    1
+#define EZ_<NAME>_ERR_SYNTAX -1   // generic catch-all (reserved; not returned by current code)
 // ... specific errors at -2, -3, … with one code per class of error
 ```
 
@@ -70,8 +72,8 @@ being able to distinguish e.g. bad escape from unclosed bracket.
 Expose tuneable constants as macros that callers can override before `#include`:
 
 ```cpp
-#ifndef EZ<NAME>_MAX_ITEMS
-#define EZ<NAME>_MAX_ITEMS 16
+#ifndef EZ_<NAME>_MAX_ITEMS
+#define EZ_<NAME>_MAX_ITEMS 16
 #endif
 ```
 
@@ -82,9 +84,9 @@ Expose tuneable constants as macros that callers can override before `#include`:
 - Framework: **doctest** — vendored as a single header (`tests/doctest.h`); no download required.
 - Coverage: every public-API behaviour, every error code, every edge case in internal
   helpers (white-box).
-- White-box access: compile the library with `EZ<NAME>_TESTING` defined (set via CMake
+- White-box access: compile the library with `EZ_<NAME>_TESTING` defined (set via CMake
   when building tests). Wrap each internal `static` function in a thin `_test_*` forwarder
-  inside `#ifdef EZ<NAME>_TESTING` blocks.
+  inside `#ifdef EZ_<NAME>_TESTING` blocks.
 - Test structure: one `TEST_CASE` per behaviour; group related cases with `TEST_SUITE`.
   Names are declarative sentences: `"empty pattern matches anywhere"`.
 - No mocks, no fakes — test against the real implementation.
@@ -227,13 +229,33 @@ ez<name>/
 
 ## Naming Conventions
 
-| Thing | Convention | Example |
-|-------|-----------|---------|
-| Library name | `ez<domain>` lowercase | `ezregex`, `ezjson` |
-| Public functions | `ez<name>_<verb>` snake\_case | `ezregex_match` |
-| Internal functions | `snake_case`, verb-first | `match_here`, `parse_braces` |
-| Public macros | `EZ<NAME>_<CONDITION>` | `EZREGEX_MATCH`, `EZREGEX_ERR_ESCAPE` |
-| Compile-time limit | `EZ<NAME>_MAX_<THING>` | `EZREGEX_MAX_CAPTURES` |
-| Testing flag | `EZ<NAME>_TESTING` | `EZREGEX_TESTING` |
-| CMake options | `EZ<NAME>_BUILD_*`, `EZ<NAME>_SANITIZE` | `EZREGEX_BUILD_TESTS` |
-| White-box wrappers | `_test_<internal_name>` | `_test_parse_braces` |
+| Element | Convention | Example |
+|---------|------------|---------|
+| Namespace | `ez` — flat, one level, shared by all ez libraries | `ez::regex_match`, `ez::json_parse` |
+| Public free functions | `snake_case` inside `ez::` | `ez::regex_match` |
+| Public classes / structs | `PascalCase` inside `ez::` | `ez::Span`, `ez::Regex` |
+| Public macros (return codes) | `EZ_<LIBRARY>_<CONDITION>` | `EZ_REGEX_MATCH`, `EZ_REGEX_ERR_ESCAPE` |
+| Compile-time limits | `EZ_<LIBRARY>_MAX_<THING>` | `EZ_REGEX_MAX_CAPTURES` |
+| Internal functions | `snake_case`, verb-first, `static` linkage | `match_here`, `parse_braces` |
+| Internal structs | `PascalCase`, no `ez::` prefix | `CaptureState`, `CaptureGroup` |
+| White-box test hooks | `_test_<name>`, compiled under `EZ_<LIBRARY>_TESTING` | `_test_parse_braces` |
+| CMake options | `EZ<LIBRARY>_<OPTION>` (library name concatenated) | `EZREGEX_BUILD_TESTS`, `EZREGEX_SANITIZE` |
+
+### Rationale
+
+**Shared namespace, domain-prefixed functions.** All ez libraries live in `ez::`. Function
+names include their domain (`regex_match`, `json_parse`) to avoid ambiguity when multiple ez
+libraries are used together in the same translation unit.
+
+**`PascalCase` classes, `snake_case` free functions.** Mirrors the C++ standard library
+(`std::string_view`, `std::regex_match`) and makes the distinction between types and
+callables visually immediate.
+
+**`EZ_<LIBRARY>_` macro prefix.** Macros cannot be namespaced, so a per-library prefix with
+explicit separators (`EZ_REGEX_`, `EZ_JSON_`) prevents collisions across the ez family even
+when multiple headers are included in the same translation unit.
+
+**CMake options use the concatenated library name** (`EZREGEX_`, `EZJSON_`) rather than the
+underscore-separated macro prefix. This is a deliberate distinction: CMake cache variables
+are a build-system interface, not a C++ identifier, and the shorter prefix is conventional
+in CMake projects.
