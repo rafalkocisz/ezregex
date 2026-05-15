@@ -1,0 +1,34 @@
+---
+Language:        Cpp
+BasedOnStyle:    LLVM
+
+# Indentation
+IndentWidth:     4
+UseTab:          Never
+IndentCaseLabels: true
+
+# Line length
+ColumnLimit:     100
+
+# Braces — Allman for functions/structs, K&R for control flow
+BreakBeforeBraces: Linux
+
+# Pointer and reference — attached to type: int* p, int& r
+PointerAlignment:   Left
+ReferenceAlignment: Left
+
+# Short constructs
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine:  None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Spacing
+SpaceBeforeParens:    ControlStatements
+SpaceAfterCStyleCast: false
+
+# Trailing comments — align within each contiguous comment block
+AlignTrailingComments: true
+
+# Includes — preserve hand-ordered include blocks
+SortIncludes: Never

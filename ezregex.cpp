@@ -20,8 +20,7 @@ static bool is_word(char c)
 
 static bool is_space(char c)
 {
-    return c == ' '  || c == '\t' || c == '\n'
-        || c == '\r' || c == '\f' || c == '\v';
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
 }
 
 // ── Single-atom matching ──────────────────────────────────────────────────────
@@ -42,12 +41,18 @@ static bool match_one(char c, const char* pat, int& pat_advance)
             case 't': return c == '\t';
             case 'n': return c == '\n';
             case 'r': return c == '\r';
-            case '.':  case '(': case ')': case '[': case ']':
-            case '*':  case '+': case '?': case '{': case '}':
-            case '\\':
-                return c == pat[1];
-            default:
-                return false;
+            case '.':
+            case '(':
+            case ')':
+            case '[':
+            case ']':
+            case '*':
+            case '+':
+            case '?':
+            case '{':
+            case '}':
+            case '\\': return c == pat[1];
+            default: return false;
         }
     }
 
@@ -71,10 +76,10 @@ static bool match_one(char c, const char* pat, int& pat_advance)
 //  - All literal escapes ('\.', '\(', etc.) work inside classes.
 static bool match_class(char c, const char* pat, int& pat_advance)
 {
-    const char* p = pat + 1;  // skip '['
-    bool negate  = false;
+    const char* p = pat + 1; // skip '['
+    bool negate = false;
     bool matched = false;
-    bool first   = true;
+    bool first = true;
 
     if (*p == '^') {
         negate = true;
@@ -88,21 +93,21 @@ static bool match_class(char c, const char* pat, int& pat_advance)
         }
 
         if (*p == '\\') {
-            if (*(p + 1) == '\0') break;  // trailing backslash — stop safely
+            if (*(p + 1) == '\0')
+                break; // trailing backslash — stop safely
             int adv = 0;
-            if (match_one(c, p, adv)) matched = true;
+            if (match_one(c, p, adv))
+                matched = true;
             p += adv;
-        } else if (*p != ']'
-                && *(p + 1) == '-'
-                && *(p + 2) != '\0'
-                && *(p + 2) != ']'
-                && *(p + 2) != '\\') {
+        } else if (*p != ']' && *(p + 1) == '-' && *(p + 2) != '\0' && *(p + 2) != ']' &&
+                   *(p + 2) != '\\') {
             if ((unsigned char)c >= (unsigned char)*p &&
                 (unsigned char)c <= (unsigned char)*(p + 2))
                 matched = true;
             p += 3;
         } else {
-            if (c == *p) matched = true;
+            if (c == *p)
+                matched = true;
             ++p;
         }
 
@@ -131,7 +136,7 @@ static int atom_advance(const char* pat)
 {
     if (pat[0] == '[') {
         int adv = 0;
-        match_class('\0', pat, adv);  // dry run: result discarded, adv is what we want
+        match_class('\0', pat, adv); // dry run: result discarded, adv is what we want
         return adv;
     }
     return pat[0] == '\\' ? 2 : 1;
@@ -144,14 +149,16 @@ static int atom_advance(const char* pat)
 // Returns true if well-formed; false if malformed (caller treats '{' as a literal).
 static bool parse_braces(const char* pat, int& lo, int& hi, int& quant_adv)
 {
-    const char* p = pat + 1;  // skip '{'
+    const char* p = pat + 1; // skip '{'
 
-    if (!is_digit(*p)) return false;
+    if (!is_digit(*p))
+        return false;
 
     lo = 0;
     while (is_digit(*p)) {
         int d = *p - '0';
-        if (lo > (INT_MAX - d) / 10) return false;  // overflow guard
+        if (lo > (INT_MAX - d) / 10)
+            return false; // overflow guard
         lo = lo * 10 + d;
         ++p;
     }
@@ -161,7 +168,8 @@ static bool parse_braces(const char* pat, int& lo, int& hi, int& quant_adv)
         quant_adv = (int)(p - pat) + 1;
         return true;
     }
-    if (*p != ',') return false;
+    if (*p != ',')
+        return false;
     ++p;
 
     if (*p == '}') {
@@ -169,18 +177,22 @@ static bool parse_braces(const char* pat, int& lo, int& hi, int& quant_adv)
         quant_adv = (int)(p - pat) + 1;
         return true;
     }
-    if (!is_digit(*p)) return false;
+    if (!is_digit(*p))
+        return false;
 
     hi = 0;
     while (is_digit(*p)) {
         int d = *p - '0';
-        if (hi > (INT_MAX - d) / 10) return false;  // overflow guard
+        if (hi > (INT_MAX - d) / 10)
+            return false; // overflow guard
         hi = hi * 10 + d;
         ++p;
     }
 
-    if (*p != '}') return false;
-    if (hi < lo)   return false;
+    if (*p != '}')
+        return false;
+    if (hi < lo)
+        return false;
 
     quant_adv = (int)(p - pat) + 1;
     return true;
@@ -195,32 +207,32 @@ struct CaptureGroup {
 
 struct CaptureState {
     CaptureGroup groups[EZ_REGEX_MAX_CAPTURES];
-    int          count;
+    int count;
 };
 
 // ── Forward declaration (match_here ↔ match_quantifier mutual recursion) ──────
 
-static bool match_here(const char* pat, const char* str,
-                       const char* str_start, CaptureState& state);
+static bool match_here(const char* pat, const char* str, const char* str_start,
+                       CaptureState& state);
 
 // ── Greedy quantifier engine ──────────────────────────────────────────────────
 
 // Match the atom at pat[0..atom_adv-1] between lo and hi times (greedy),
 // then continue with match_here on the rest of the pattern.
 // quant_adv is the byte length of the quantifier token (1 for ?*+, variable for {}).
-static bool match_quantifier(const char* pat, int atom_adv,
-                              int lo, int hi, int quant_adv,
-                              const char* str, const char* str_start,
-                              CaptureState& state)
+static bool match_quantifier(const char* pat, int atom_adv, int lo, int hi, int quant_adv,
+                             const char* str, const char* str_start, CaptureState& state)
 {
     // Greedily count the maximum number of consecutive atom matches.
     int max_count = 0;
     {
         int dummy = 0;
         while (max_count < hi) {
-            if (str[max_count] == '\0') break;
+            if (str[max_count] == '\0')
+                break;
             dummy = 0;
-            if (!match_atom(str[max_count], pat, dummy)) break;
+            if (!match_atom(str[max_count], pat, dummy))
+                break;
             ++max_count;
         }
     }
@@ -239,8 +251,7 @@ static bool match_quantifier(const char* pat, int atom_adv,
 
 // ── Core recursive matcher ────────────────────────────────────────────────────
 
-static bool match_here(const char* pat, const char* str,
-                       const char* str_start, CaptureState& state)
+static bool match_here(const char* pat, const char* str, const char* str_start, CaptureState& state)
 {
     if (pat[0] == '\0')
         return true;
@@ -255,8 +266,8 @@ static bool match_here(const char* pat, const char* str,
     if (pat[0] == '\\' && (pat[1] == 'b' || pat[1] == 'B')) {
         char prev = (str > str_start) ? str[-1] : '\0';
         bool at_boundary = is_word(prev) != is_word(str[0]);
-        return ((pat[1] == 'b') ? at_boundary : !at_boundary)
-               && match_here(pat + 2, str, str_start, state);
+        return ((pat[1] == 'b') ? at_boundary : !at_boundary) &&
+               match_here(pat + 2, str, str_start, state);
     }
 
     // Group markers — do not consume a character from str.
@@ -265,7 +276,7 @@ static bool match_here(const char* pat, const char* str,
             return false;
         int idx = state.count++;
         state.groups[idx].start = str;
-        state.groups[idx].end   = nullptr;
+        state.groups[idx].end = nullptr;
         return match_here(pat + 1, str, str_start, state);
     }
 
@@ -276,7 +287,7 @@ static bool match_here(const char* pat, const char* str,
                 return match_here(pat + 1, str, str_start, state);
             }
         }
-        return false;  // unmatched ')' — error detection added in Step 6
+        return false; // unmatched ')' — error detection added in Step 6
     }
 
     // Compute atom advance so we can peek at the quantifier BEFORE the str check.
@@ -287,13 +298,13 @@ static bool match_here(const char* pat, const char* str,
     {
         int lo, hi, qadv;
         switch (pat[adv]) {
-            case '?': return match_quantifier(pat, adv, 0, 1,       1,    str, str_start, state);
-            case '*': return match_quantifier(pat, adv, 0, INT_MAX, 1,    str, str_start, state);
-            case '+': return match_quantifier(pat, adv, 1, INT_MAX, 1,    str, str_start, state);
+            case '?': return match_quantifier(pat, adv, 0, 1, 1, str, str_start, state);
+            case '*': return match_quantifier(pat, adv, 0, INT_MAX, 1, str, str_start, state);
+            case '+': return match_quantifier(pat, adv, 1, INT_MAX, 1, str, str_start, state);
             case '{':
                 if (parse_braces(pat + adv, lo, hi, qadv))
                     return match_quantifier(pat, adv, lo, hi, qadv, str, str_start, state);
-                break;  // malformed braces — fall through and treat '{' on next call
+                break; // malformed braces — fall through and treat '{' on next call
             default: break;
         }
     }
@@ -302,22 +313,49 @@ static bool match_here(const char* pat, const char* str,
     if (str[0] == '\0')
         return false;
 
-    if (!match_atom(str[0], pat, adv)) return false;
+    if (!match_atom(str[0], pat, adv))
+        return false;
     return match_here(pat + adv, str + 1, str_start, state);
 }
 
 // ── Test-accessible wrappers (compiled only with EZREGEX_TESTING) ─────────────
 #ifdef EZ_REGEX_TESTING
-bool _test_is_digit(char c)                               { return is_digit(c); }
-bool _test_is_alpha(char c)                               { return is_alpha(c); }
-bool _test_is_word(char c)                                { return is_word(c); }
-bool _test_is_space(char c)                               { return is_space(c); }
-bool _test_match_one(char c, const char* pat, int& adv)   { return match_one(c, pat, adv); }
-bool _test_match_class(char c, const char* pat, int& adv) { return match_class(c, pat, adv); }
-bool _test_match_atom(char c, const char* pat, int& adv)  { return match_atom(c, pat, adv); }
-int  _test_atom_advance(const char* pat)                  { return atom_advance(pat); }
+bool _test_is_digit(char c)
+{
+    return is_digit(c);
+}
+bool _test_is_alpha(char c)
+{
+    return is_alpha(c);
+}
+bool _test_is_word(char c)
+{
+    return is_word(c);
+}
+bool _test_is_space(char c)
+{
+    return is_space(c);
+}
+bool _test_match_one(char c, const char* pat, int& adv)
+{
+    return match_one(c, pat, adv);
+}
+bool _test_match_class(char c, const char* pat, int& adv)
+{
+    return match_class(c, pat, adv);
+}
+bool _test_match_atom(char c, const char* pat, int& adv)
+{
+    return match_atom(c, pat, adv);
+}
+int _test_atom_advance(const char* pat)
+{
+    return atom_advance(pat);
+}
 bool _test_parse_braces(const char* pat, int& lo, int& hi, int& qadv)
-                                                          { return parse_braces(pat, lo, hi, qadv); }
+{
+    return parse_braces(pat, lo, hi, qadv);
+}
 #endif
 
 // ── Public API (namespace ez) ─────────────────────────────────────────────────
@@ -328,24 +366,37 @@ bool _test_parse_braces(const char* pat, int& lo, int& hi, int& qadv)
 // Returns EZ_REGEX_MATCH (0) if valid, or a negative error code.
 static int validate_pattern(const char* pat)
 {
-    int depth = 0;   // 0 = outside a group, 1 = inside; >1 is an error (no nesting)
-    int groups = 0;  // total capture groups opened
+    int depth = 0;  // 0 = outside a group, 1 = inside; >1 is an error (no nesting)
+    int groups = 0; // total capture groups opened
 
-    for (const char* p = pat; *p != '\0'; ) {
+    for (const char* p = pat; *p != '\0';) {
         if (*p == '\\') {
-            if (*(p + 1) == '\0') return EZ_REGEX_ERR_ESCAPE;   // trailing backslash
+            if (*(p + 1) == '\0')
+                return EZ_REGEX_ERR_ESCAPE; // trailing backslash
             switch (*(p + 1)) {
-                case 'd': case 'D':
-                case 'w': case 'W':
-                case 's': case 'S':
-                case 't': case 'n': case 'r':
-                case 'b': case 'B':
-                case '.': case '(': case ')': case '[': case ']':
-                case '*': case '+': case '?': case '{': case '}':
-                case '\\':
-                    break;
-                default:
-                    return EZ_REGEX_ERR_ESCAPE;                  // unknown escape sequence
+                case 'd':
+                case 'D':
+                case 'w':
+                case 'W':
+                case 's':
+                case 'S':
+                case 't':
+                case 'n':
+                case 'r':
+                case 'b':
+                case 'B':
+                case '.':
+                case '(':
+                case ')':
+                case '[':
+                case ']':
+                case '*':
+                case '+':
+                case '?':
+                case '{':
+                case '}':
+                case '\\': break;
+                default: return EZ_REGEX_ERR_ESCAPE; // unknown escape sequence
             }
             p += 2;
             continue;
@@ -354,34 +405,42 @@ static int validate_pattern(const char* pat)
         if (*p == '[') {
             // Scan to matching ']', respecting escapes and the first-char rule.
             const char* q = p + 1;
-            if (*q == '^') ++q;
+            if (*q == '^')
+                ++q;
             bool first = true;
             while (*q != '\0') {
-                if (*q == ']' && !first) { break; }
+                if (*q == ']' && !first) {
+                    break;
+                }
                 if (*q == '\\') {
-                    if (*(q + 1) == '\0') return EZ_REGEX_ERR_BRACKET;  // \ at end of content
+                    if (*(q + 1) == '\0')
+                        return EZ_REGEX_ERR_BRACKET; // \ at end of content
                     q += 2;
                 } else {
                     ++q;
                 }
                 first = false;
             }
-            if (*q != ']') return EZ_REGEX_ERR_BRACKET;         // unclosed '['
+            if (*q != ']')
+                return EZ_REGEX_ERR_BRACKET; // unclosed '['
             p = q + 1;
             continue;
         }
 
         if (*p == '(') {
-            if (depth > 0) return EZ_REGEX_ERR_NESTING;         // nested groups not supported
+            if (depth > 0)
+                return EZ_REGEX_ERR_NESTING; // nested groups not supported
             ++depth;
             ++groups;
-            if (groups > EZ_REGEX_MAX_CAPTURES) return EZ_REGEX_ERR_DEPTH;
+            if (groups > EZ_REGEX_MAX_CAPTURES)
+                return EZ_REGEX_ERR_DEPTH;
             ++p;
             continue;
         }
 
         if (*p == ')') {
-            if (depth == 0) return EZ_REGEX_ERR_PAREN;          // unmatched ')'
+            if (depth == 0)
+                return EZ_REGEX_ERR_PAREN; // unmatched ')'
             --depth;
             ++p;
             continue;
@@ -390,24 +449,29 @@ static int validate_pattern(const char* pat)
         ++p;
     }
 
-    if (depth != 0) return EZ_REGEX_ERR_PAREN;                  // unclosed '('
+    if (depth != 0)
+        return EZ_REGEX_ERR_PAREN; // unclosed '('
     return EZ_REGEX_MATCH;
 }
 
 #ifdef EZ_REGEX_TESTING
-int  _test_validate_pattern(const char* pat)              { return validate_pattern(pat); }
+int _test_validate_pattern(const char* pat)
+{
+    return validate_pattern(pat);
+}
 #endif
 
-namespace ez {
-
-int regex_match(const char* regex,
-                const char* str,
-                std::vector<std::string_view>* captures)
+namespace ez
 {
-    if (captures) captures->clear();
+
+int regex_match(const char* regex, const char* str, std::vector<std::string_view>* captures)
+{
+    if (captures)
+        captures->clear();
 
     int err = validate_pattern(regex);
-    if (err < 0) return err;
+    if (err < 0)
+        return err;
 
     const char* p = str;
     while (true) {
@@ -416,14 +480,16 @@ int regex_match(const char* regex,
             if (captures) {
                 for (int i = 0; i < state.count; ++i) {
                     if (state.groups[i].end != nullptr)
-                        captures->emplace_back(state.groups[i].start,
+                        captures->emplace_back(
+                            state.groups[i].start,
                             (size_t)(state.groups[i].end - state.groups[i].start));
                 }
             }
             return EZ_REGEX_MATCH;
         }
         // For anchored patterns only position 0 can succeed.
-        if (*p == '\0' || regex[0] == '^') break;
+        if (*p == '\0' || regex[0] == '^')
+            break;
         ++p;
     }
     return EZ_REGEX_NO_MATCH;

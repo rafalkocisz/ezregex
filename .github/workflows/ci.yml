@@ -7,6 +7,24 @@ on:
     branches: [main]
 
 jobs:
+  format:
+    name: Formatting (clang-format)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format-19
+        run: |
+          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 19
+          sudo apt-get install -y clang-format-19
+
+      - name: Check formatting
+        run: |
+          find . \( -name '*.cpp' -o -name '*.h' \) \
+            -not -path './build*' \
+            -not -name 'doctest.h' \
+            | xargs clang-format-19 --style=file --dry-run --Werror
+
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
