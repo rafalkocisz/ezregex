@@ -685,6 +685,13 @@ TEST_CASE("'$' inside pattern is a zero-width end assertion") {
     CHECK(ezregex_match("abc$xyz", "abc",    &caps) == EZREGEX_NO_MATCH);
 }
 
+TEST_CASE("'^' inside pattern is a zero-width start assertion") {
+    std::vector<std::string_view> caps;
+    // "abc^xyz" can never match: after consuming 'abc' we are no longer at str_start
+    CHECK(ezregex_match("abc^xyz", "abcxyz", &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("abc^xyz", "abc",    &caps) == EZREGEX_NO_MATCH);
+}
+
 // ── Mixed atoms ───────────────────────────────────────────────────────────────
 
 TEST_CASE("mixed sequence: anchor + class + escape + literal") {
