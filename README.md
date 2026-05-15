@@ -1,5 +1,7 @@
 # ezregex
 
+[![CI](https://github.com/rafalkocisz/ezregex/actions/workflows/ci.yml/badge.svg)](https://github.com/rafalkocisz/ezregex/actions/workflows/ci.yml)
+
 A minimal, dependency-free C++ regex matching library. Single header + source pair,
 Orthodox C++ style, ASCII-only, no Unicode.
 

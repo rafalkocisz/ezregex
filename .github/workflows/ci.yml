@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux / GCC
+            os: ubuntu-22.04
+            configure_args: -DCMAKE_CXX_COMPILER=g++
+            build_args: ""
+            test_args: ""
+          - name: Linux / Clang
+            os: ubuntu-22.04
+            configure_args: -DCMAKE_CXX_COMPILER=clang++
+            build_args: ""
+            test_args: ""
+          - name: Windows / MSVC
+            os: windows-latest
+            configure_args: ""
+            build_args: --config Debug
+            test_args: -C Debug
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build ${{ matrix.configure_args }}
+
+      - name: Build
+        run: cmake --build build ${{ matrix.build_args }}
+
+      - name: Test
+        run: ctest --test-dir build ${{ matrix.test_args }} --output-on-failure
