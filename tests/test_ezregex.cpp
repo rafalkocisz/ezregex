@@ -251,11 +251,19 @@ TEST_CASE("literal escape sequences: each matches its own char, adv == 2") {
     }
 }
 
+TEST_CASE("\\t \\n \\r match the corresponding control characters, adv == 2") {
+    int adv;
+    adv = 0; CHECK(_test_match_one('\t', "\\t", adv));        CHECK(adv == 2);
+    adv = 0; CHECK_FALSE(_test_match_one('t', "\\t", adv));   CHECK(adv == 2);
+    adv = 0; CHECK(_test_match_one('\n', "\\n", adv));        CHECK(adv == 2);
+    adv = 0; CHECK_FALSE(_test_match_one('n', "\\n", adv));   CHECK(adv == 2);
+    adv = 0; CHECK(_test_match_one('\r', "\\r", adv));        CHECK(adv == 2);
+    adv = 0; CHECK_FALSE(_test_match_one('r', "\\r", adv));   CHECK(adv == 2);
+}
+
 TEST_CASE("unknown escape returns false, adv == 2") {
     int adv;
     adv = 0; CHECK_FALSE(_test_match_one('x', "\\x", adv)); CHECK(adv == 2);
-    adv = 0; CHECK_FALSE(_test_match_one('n', "\\n", adv)); CHECK(adv == 2);
-    adv = 0; CHECK_FALSE(_test_match_one('t', "\\t", adv)); CHECK(adv == 2);
     adv = 0; CHECK_FALSE(_test_match_one('e', "\\e", adv)); CHECK(adv == 2);
 }
 
@@ -1290,6 +1298,11 @@ TEST_CASE("valid: recognized escapes") {
     CHECK(_test_validate_pattern("\\W") == EZREGEX_MATCH);
     CHECK(_test_validate_pattern("\\s") == EZREGEX_MATCH);
     CHECK(_test_validate_pattern("\\S") == EZREGEX_MATCH);
+    CHECK(_test_validate_pattern("\\t") == EZREGEX_MATCH);
+    CHECK(_test_validate_pattern("\\n") == EZREGEX_MATCH);
+    CHECK(_test_validate_pattern("\\r") == EZREGEX_MATCH);
+    CHECK(_test_validate_pattern("\\b") == EZREGEX_MATCH);
+    CHECK(_test_validate_pattern("\\B") == EZREGEX_MATCH);
     CHECK(_test_validate_pattern("\\.") == EZREGEX_MATCH);
     CHECK(_test_validate_pattern("\\(") == EZREGEX_MATCH);
     CHECK(_test_validate_pattern("\\)") == EZREGEX_MATCH);
@@ -1328,9 +1341,6 @@ TEST_CASE("error: trailing backslash returns EZREGEX_ERR_ESCAPE") {
 
 TEST_CASE("error: unknown escape returns EZREGEX_ERR_ESCAPE") {
     CHECK(_test_validate_pattern("\\a") == EZREGEX_ERR_ESCAPE);
-    CHECK(_test_validate_pattern("\\b") == EZREGEX_ERR_ESCAPE);
-    CHECK(_test_validate_pattern("\\n") == EZREGEX_ERR_ESCAPE);
-    CHECK(_test_validate_pattern("\\t") == EZREGEX_ERR_ESCAPE);
     CHECK(_test_validate_pattern("\\1") == EZREGEX_ERR_ESCAPE);
     CHECK(_test_validate_pattern("\\x") == EZREGEX_ERR_ESCAPE);
     CHECK(_test_validate_pattern("\\z") == EZREGEX_ERR_ESCAPE);
@@ -1406,7 +1416,7 @@ TEST_CASE("trailing backslash returns EZREGEX_ERR_ESCAPE") {
 
 TEST_CASE("unknown escape returns EZREGEX_ERR_ESCAPE") {
     std::vector<std::string_view> caps;
-    CHECK(ezregex_match("\\n", "a", &caps) == EZREGEX_ERR_ESCAPE);
+    CHECK(ezregex_match("\\a", "a", &caps) == EZREGEX_ERR_ESCAPE);
     CHECK(caps.empty());
 }
 
@@ -1908,3 +1918,126 @@ TEST_CASE("long option with value: --user=name") {
 }
 
 } // TEST_SUITE("cmdline options")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 8: literal whitespace escapes \t \n \r
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST_SUITE("whitespace_escapes") {
+
+TEST_CASE("\\t matches tab, not other chars") {
+    std::vector<std::string_view> caps;
+    CHECK(ezregex_match("^\\t$",  "\t",  &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^\\t$",  "t",   &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("^\\t$",  " ",   &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("^\\t$",  "\n",  &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\n matches newline, not other chars") {
+    std::vector<std::string_view> caps;
+    CHECK(ezregex_match("^\\n$",  "\n",  &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^\\n$",  "n",   &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("^\\n$",  " ",   &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("^\\n$",  "\t",  &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\r matches carriage-return, not other chars") {
+    std::vector<std::string_view> caps;
+    CHECK(ezregex_match("^\\r$",  "\r",  &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^\\r$",  "r",   &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("^\\r$",  "\n",  &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\t\\n inside a pattern between literals") {
+    std::vector<std::string_view> caps;
+    CHECK(ezregex_match("^a\\tb$",   "a\tb",  &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^a\\nb$",   "a\nb",  &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^a\\rb$",   "a\rb",  &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^a\\tb$",   "a b",   &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\t inside a character class") {
+    std::vector<std::string_view> caps;
+    CHECK(ezregex_match("^[\\t\\n]+$", "\t\n\t", &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^[\\t\\n]+$", "a",      &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\t+ captures a tab run") {
+    std::vector<std::string_view> caps;
+    REQUIRE(ezregex_match("(\\t+)", "x\t\ty", &caps) == EZREGEX_MATCH);
+    REQUIRE(caps.size() == 1);
+    CHECK(caps[0] == "\t\t");
+}
+
+} // TEST_SUITE("whitespace_escapes")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 8: word boundary assertions \b and \B
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST_SUITE("word_boundary") {
+
+TEST_CASE("\\b matches at word/non-word transitions") {
+    std::vector<std::string_view> caps;
+    // word boundary before "cat" in "a cat"
+    CHECK(ezregex_match("\\bcat\\b", "a cat b",  &caps) == EZREGEX_MATCH);
+    // whole-word match — "cat" surrounded by spaces
+    CHECK(ezregex_match("\\bcat\\b", "cat",      &caps) == EZREGEX_MATCH);
+    // "cat" at start of string
+    CHECK(ezregex_match("\\bcat\\b", "cat food",  &caps) == EZREGEX_MATCH);
+    // "cat" at end of string
+    CHECK(ezregex_match("\\bcat\\b", "my cat",   &caps) == EZREGEX_MATCH);
+}
+
+TEST_CASE("\\b does not match inside a word") {
+    std::vector<std::string_view> caps;
+    // "cat" embedded in "concatenate" — no word boundary around it
+    CHECK(ezregex_match("^\\bcat\\b$", "concatenate", &caps) == EZREGEX_NO_MATCH);
+    // anchored whole-word: "cats" has no boundary after "cat"
+    CHECK(ezregex_match("\\bcat\\b", "cats",    &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("\\bcat\\b", "scat",    &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("\\bcat\\b", "scatter", &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\b at start of string — boundary when first char is word char") {
+    std::vector<std::string_view> caps;
+    // "^\\b" means: start of string AND a word boundary (first char is \w)
+    CHECK(ezregex_match("^\\bfoo", "foobar",  &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("^\\bfoo", " foobar", &caps) == EZREGEX_NO_MATCH);  // ^ fails
+}
+
+TEST_CASE("\\b at end of string — boundary when last char is word char") {
+    std::vector<std::string_view> caps;
+    CHECK(ezregex_match("foo\\b$", "foo",     &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("foo\\b$", "foo ",    &caps) == EZREGEX_NO_MATCH);  // $ fails
+}
+
+TEST_CASE("\\B matches inside a word, not at boundary") {
+    std::vector<std::string_view> caps;
+    // "ca\\Bt" matches "cat" where there is no boundary between 'a' and 't'
+    CHECK(ezregex_match("ca\\Bt",  "cat",    &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("ca\\Bt",  "ca t",   &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\B does not match at a word boundary") {
+    std::vector<std::string_view> caps;
+    // "\\Bcat\\B" requires non-boundary on both sides → must be inside a longer word
+    CHECK(ezregex_match("\\Bcat\\B", "concatenate", &caps) == EZREGEX_MATCH);
+    CHECK(ezregex_match("\\Bcat\\B", "cat",         &caps) == EZREGEX_NO_MATCH);
+    CHECK(ezregex_match("\\Bcat\\B", "a cat b",     &caps) == EZREGEX_NO_MATCH);
+}
+
+TEST_CASE("\\b with quantifiers: \\b\\w+\\b extracts whole word") {
+    std::vector<std::string_view> caps;
+    REQUIRE(ezregex_match("\\b(\\w+)\\b", "hello world", &caps) == EZREGEX_MATCH);
+    REQUIRE(caps.size() == 1);
+    CHECK(caps[0] == "hello");
+}
+
+TEST_CASE("\\b on non-word-only string: no match") {
+    std::vector<std::string_view> caps;
+    // String is all spaces — no word chars, so no word boundaries
+    CHECK(ezregex_match("\\b", "   ", &caps) == EZREGEX_NO_MATCH);
+}
+
+} // TEST_SUITE("word_boundary")

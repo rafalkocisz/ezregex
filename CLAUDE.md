@@ -43,6 +43,8 @@ int ezregex_match(const char* regex,
 | `\d \D`      | Digit / non-digit                    |
 | `\w \W`      | Word char / non-word char            |
 | `\s \S`      | Whitespace / non-whitespace          |
+| `\t \n \r`   | Tab / newline / carriage-return      |
+| `\b \B`      | Word boundary / non-word boundary    |
 | `^`          | Anchor — start of string             |
 | `$`          | Anchor — end of string               |
 | `\.`         | Literal dot (escape metacharacter)   |

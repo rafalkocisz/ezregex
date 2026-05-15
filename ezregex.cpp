@@ -39,6 +39,9 @@ static bool match_one(char c, const char* pat, int& pat_advance)
             case 'W': return !is_word(c);
             case 's': return is_space(c);
             case 'S': return !is_space(c);
+            case 't': return c == '\t';
+            case 'n': return c == '\n';
+            case 'r': return c == '\r';
             case '.':  case '(': case ')': case '[': case ']':
             case '*':  case '+': case '?': case '{': case '}':
             case '\\':
@@ -249,6 +252,13 @@ static bool match_here(const char* pat, const char* str,
     if (pat[0] == '$')
         return (str[0] == '\0') && match_here(pat + 1, str, str_start, state);
 
+    if (pat[0] == '\\' && (pat[1] == 'b' || pat[1] == 'B')) {
+        char prev = (str > str_start) ? str[-1] : '\0';
+        bool at_boundary = is_word(prev) != is_word(str[0]);
+        return ((pat[1] == 'b') ? at_boundary : !at_boundary)
+               && match_here(pat + 2, str, str_start, state);
+    }
+
     // Group markers — do not consume a character from str.
     if (pat[0] == '(') {
         if (state.count >= EZREGEX_MAX_CAPTURES)
@@ -328,6 +338,8 @@ static int validate_pattern(const char* pat)
                 case 'd': case 'D':
                 case 'w': case 'W':
                 case 's': case 'S':
+                case 't': case 'n': case 'r':
+                case 'b': case 'B':
                 case '.': case '(': case ')': case '[': case ']':
                 case '*': case '+': case '?': case '{': case '}':
                 case '\\':

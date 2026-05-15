@@ -114,6 +114,8 @@ The default capture limit is 16. Override it before including the header:
 | `\d` / `\D`   | Digit / non-digit |
 | `\w` / `\W`   | Word character (`[A-Za-z0-9_]`) / non-word |
 | `\s` / `\S`   | Whitespace / non-whitespace |
+| `\t` / `\n` / `\r` | Tab / newline / carriage-return |
+| `\b` / `\B`   | Word boundary / non-word boundary (zero-width) |
 | `^`           | Anchor — start of string |
 | `$`           | Anchor — end of string |
 | `\.` `\(` `\)` `\[` `\]` `\*` `\+` `\?` `\{` `\}` `\\` | Literal metacharacter |
