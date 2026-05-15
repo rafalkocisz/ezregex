@@ -318,7 +318,7 @@ static bool match_here(const char* pat, const char* str, const char* str_start, 
     return match_here(pat + adv, str + 1, str_start, state);
 }
 
-// ── Test-accessible wrappers (compiled only with EZREGEX_TESTING) ─────────────
+// ── Test-accessible wrappers (compiled only with EZ_REGEX_TESTING) ────────────
 #ifdef EZ_REGEX_TESTING
 bool _test_is_digit(char c)
 {
