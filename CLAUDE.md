@@ -1,7 +1,7 @@
 # ezregex — Project Constitution
 
 > Non-domain-specific style rules (Orthodox C++, code formatting, testing, build options,
-> benchmarking, sanitizers, fuzzing, naming, repository layout) live in **[EZ.md](EZ.md)**
+> benchmarking, sanitizers, fuzzing, naming, repository layout) live in **[ez/EZ.md](ez/EZ.md)**
 > and apply to this project in full. This file contains only ezregex-specific decisions.
 
 ## Purpose
@@ -83,12 +83,12 @@ int regex_match(const char* regex,
 `captures` is **always cleared** on entry regardless of outcome. Views into `str` are only valid while `str` is alive.
 
 ## Coding Standards
-See [EZ.md § Code Style](EZ.md#code-style--orthodox-c). Domain-specific addition:
+See [EZ.md § Code Style](ez/EZ.md#code-style--orthodox-c). Domain-specific addition:
 internal capture state is bounded by `EZ_REGEX_MAX_CAPTURES` (default 16, overridable
 before `#include`).
 
 ## Naming Conventions
-See [EZ.md § Naming Conventions](EZ.md#naming-conventions) for the full table and
+See [EZ.md § Naming Conventions](ez/EZ.md#naming-conventions) for the full table and
 rationale. ezregex-specific instantiation:
 
 | Element | Name |
@@ -109,7 +109,7 @@ rationale. ezregex-specific instantiation:
 - Build system: CMake ≥ 3.20.
 
 ## Repository Layout
-Follows the canonical ez layout from [EZ.md § Repository Layout](EZ.md#repository-layout)
+Follows the canonical ez layout from [EZ.md § Repository Layout](ez/EZ.md#repository-layout)
 in full, including `benchmarks/` and `fuzz/`.
 
 ## Commands

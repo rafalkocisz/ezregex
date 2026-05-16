@@ -1,0 +1,3 @@
+[submodule "ez"]
+	path = ez
+	url = https://github.com/rafalkocisz/ez.git
