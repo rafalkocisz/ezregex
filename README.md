@@ -5,7 +5,7 @@
 A minimal, dependency-free C++ regex matching library. Single header + source pair,
 Orthodox C++ style, ASCII-only, no Unicode.
 
-Part of the **ez** library family — shared design principles and conventions in [EZ.md](EZ.md).
+Part of the **ez** library family — shared design principles and conventions in [EZ.md](ez/EZ.md).
 
 ## Features
 

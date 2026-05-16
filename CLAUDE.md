@@ -110,7 +110,7 @@ rationale. ezregex-specific instantiation:
 
 ## Repository Layout
 Follows the canonical ez layout from [EZ.md § Repository Layout](ez/EZ.md#repository-layout)
-in full, including `benchmarks/` and `fuzz/`.
+in full, including `benchmarks/` and `fuzz/`, plus the `ez/` submodule.
 
 ## Commands
 
